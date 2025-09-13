@@ -1,5 +1,8 @@
-import time, uuid
-from .models import SearchRequest, SearchResponse, Hit
+import time
+import uuid
+
+from .models import Hit, SearchRequest, SearchResponse
+
 
 async def plan_query(req: SearchRequest) -> SearchResponse:
     t0 = time.perf_counter()
@@ -7,9 +10,9 @@ async def plan_query(req: SearchRequest) -> SearchResponse:
     k = max(1, min(req.k, 50))
     hits = [
         Hit(
-            id=f"doc-{i+1}",
+            id=f"doc-{i + 1}",
             score=1.0 - (i * 0.01),
-            snippet=f"Stub snippet for '{q}' (result {i+1})",
+            snippet=f"Stub snippet for '{q}' (result {i + 1})",
             meta={"source": "stub"},
         )
         for i in range(k)

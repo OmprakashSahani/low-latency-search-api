@@ -23,3 +23,21 @@ line-length = 100
 
 [tool.ruff]
 line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+pretty = true
+show_error_codes = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+strict = true
+plugins = []
+
+[tool.ruff.lint]
+select = ["E","F","I","UP","B","SIM"]
+ignore = []
