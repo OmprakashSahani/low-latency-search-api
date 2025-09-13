@@ -18,7 +18,7 @@ class LexicalIndex:
     Minimal in-memory BM25 index.
     - postings: term -> {doc_id: tf}
     - doclen: doc_id -> length (in tokens)
-    - N, avgdl maintained incrementally
+    - N, avgdl maintained incrementally with cached _avgdl
     """
 
     def __init__(self, k1: float = 1.2, b: float = 0.75) -> None:
@@ -29,6 +29,11 @@ class LexicalIndex:
         self.doclen: dict[str, int] = {}
         self.N = 0
         self._tok_cache: dict[str, list[str]] = {}
+        self._avgdl: float = 0.0  # cached average doc length
+
+    # ---- internal helpers ----
+    def _recompute_avgdl(self) -> None:
+        self._avgdl = (sum(self.doclen.values()) / self.N) if self.N else 0.0
 
     # ---- write path ----
     def add(self, doc_id: str, text: str, meta: dict[str, Any] | None = None) -> None:
@@ -50,6 +55,8 @@ class LexicalIndex:
             bucket = self.postings.setdefault(term, {})
             bucket[doc_id] = f
 
+        self._recompute_avgdl()
+
     def remove(self, doc_id: str) -> None:
         if doc_id not in self.docs:
             return
@@ -70,13 +77,12 @@ class LexicalIndex:
         del self.docs[doc_id]
         _ = self.doclen.pop(doc_id, None)
         self.N = max(0, self.N - 1)
+        self._recompute_avgdl()
 
     # ---- read path ----
     @property
     def avgdl(self) -> float:
-        if self.N == 0:
-            return 0.0
-        return sum(self.doclen.values()) / self.N
+        return self._avgdl
 
     def bm25_idf(self, term: str) -> float:
         # Standard BM25 IDF (with +0.5 smoothing)
@@ -94,7 +100,7 @@ class LexicalIndex:
 
         # candidate docs = union of postings for query terms
         candidates: dict[str, float] = {}
-        avgdl = self.avgdl or 1.0  # guard against divide-by-zero
+        avgdl = self._avgdl or 1.0  # guard against divide-by-zero
         for term in q_terms:
             plist = self.postings.get(term)
             if not plist:
