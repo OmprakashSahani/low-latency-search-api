@@ -1,0 +1,25 @@
+[project]
+name = "low-latency-search-api"
+version = "0.1.0"
+description = "Low-Latency Search API (Exa-aligned)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.112",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "orjson>=3.10.0",
+  "numpy>=1.26"
+]
+
+[tool.uvicorn]
+factory = true
+app = "app.main:create_app"
+host = "0.0.0.0"
+port = 8000
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
